@@ -81,7 +81,13 @@ def load_models():
 
     try:
 
+        print("===== STARTING JOBLIB LOAD =====", flush=True)
+
         package = joblib.load(MODEL_FILE)
+
+        print("===== JOBLIB LOAD COMPLETED =====", flush=True)
+        print(f"PACKAGE TYPE: {type(package)}", flush=True)
+        print(f"PACKAGE KEYS: {list(package.keys())}", flush=True)
 
         required_keys = [
             "random_forest",
