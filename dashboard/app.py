@@ -2,9 +2,12 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
+import traceback
 import plotly.express as px
 from pathlib import Path
 
+
+print("===== APP STARTED =====", flush=True)
 
 # ============================================================
 # PAGE CONFIGURATION
@@ -102,10 +105,35 @@ def load_models():
 
     except Exception as e:
 
+        print("===== MODEL LOAD FAILED =====", flush=True)
+        traceback.print_exc()
         return None, str(e)
 
 
+print("===== BEFORE MODEL LOAD =====", flush=True)
+print(f"MODEL FILE: {MODEL_FILE}", flush=True)
+print(
+    f"MODEL EXISTS: {MODEL_FILE.exists()} | SIZE: {MODEL_FILE.stat().st_size if MODEL_FILE.exists() else 'N/A'} bytes",
+    flush=True,
+)
+
 package, model_error = load_models()
+
+print("===== AFTER MODEL LOAD =====", flush=True)
+print(f"MODEL ERROR: {model_error}", flush=True)
+
+if package is not None:
+    print(f"MODEL PACKAGE KEYS: {list(package.keys())}", flush=True)
+    print(f"RF TYPE: {type(package.get('random_forest')).__name__}", flush=True)
+    print(f"ET TYPE: {type(package.get('extra_trees')).__name__}", flush=True)
+    print(
+        f"TUNED TYPE: {type(package.get('tuned_random_forest')).__name__}",
+        flush=True,
+    )
+    print(
+        f"PREPROCESSOR TYPE: {type(package.get('preprocessor')).__name__}",
+        flush=True,
+    )
 
 
 # ============================================================
@@ -470,14 +498,15 @@ st.sidebar.title("Dashboard")
 st.sidebar.subheader("Select Analysis")
 
 page = st.sidebar.radio(
-    "",
+    "Navigation",
     [
         "Project Introduction",
         "Dataset Analysis",
         "Model Comparison",
         "New Interaction Prediction"
     ],
-    index=0
+    index=0,
+    label_visibility="collapsed"
 )
 
 
@@ -805,7 +834,7 @@ elif page == "Dataset Analysis":
 
             st.dataframe(
                 pd.DataFrame(detection_rows),
-                use_container_width=True,
+                width="stretch",
                 hide_index=True
             )
 
@@ -871,7 +900,7 @@ elif page == "Dataset Analysis":
 
                     st.plotly_chart(
                         fig,
-                        use_container_width=True
+                        width="stretch"
                     )
 
                     # ------------------------------------------------
@@ -902,7 +931,7 @@ elif page == "Dataset Analysis":
 
                     st.dataframe(
                         summary_df,
-                        use_container_width=True,
+                        width="stretch",
                         hide_index=True
                     )
 
@@ -949,7 +978,7 @@ elif page == "Dataset Analysis":
 
                     st.dataframe(
                         correlation_df,
-                        use_container_width=True,
+                        width="stretch",
                         hide_index=True
                     )
 
@@ -1012,7 +1041,7 @@ elif page == "Dataset Analysis":
 
             st.dataframe(
                 df.head(100),
-                use_container_width=True
+                width="stretch"
             )
 
 
@@ -1056,7 +1085,7 @@ elif page == "Model Comparison":
 
         st.dataframe(
             metrics,
-            use_container_width=True,
+            width="stretch",
             hide_index=True
         )
 
@@ -1140,7 +1169,7 @@ elif page == "Model Comparison":
 
                 st.plotly_chart(
                     fig,
-                    use_container_width=True
+                    width="stretch"
                 )
 
         # ----------------------------------------------------
@@ -1727,7 +1756,7 @@ elif page == "New Interaction Prediction":
 
             st.dataframe(
                 input_df,
-                use_container_width=True
+                width="stretch"
             )
 
         # ----------------------------------------------------
@@ -1739,7 +1768,7 @@ elif page == "New Interaction Prediction":
         predict_button = st.button(
             "🔮 Predict Interaction Strength",
             type="primary",
-            use_container_width=True
+            width="stretch"
         )
 
         if predict_button:
@@ -1860,7 +1889,7 @@ elif page == "New Interaction Prediction":
 
                 st.dataframe(
                     result_df,
-                    use_container_width=True,
+                    width="stretch",
                     hide_index=True
                 )
 
@@ -1884,7 +1913,7 @@ elif page == "New Interaction Prediction":
 
                 st.plotly_chart(
                     fig,
-                    use_container_width=True
+                    width="stretch"
                 )
 
                 # -------------------------------------------
