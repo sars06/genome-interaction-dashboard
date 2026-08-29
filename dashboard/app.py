@@ -25,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 ARTIFACTS_DIR = BASE_DIR / "artifacts"
 
-MODEL_FILE = ARTIFACTS_DIR / "dashboard_models.joblib"
+MODEL_FILE = ARTIFACTS_DIR / "dashboard_models_compressed.joblib"
 METRICS_FILE = ARTIFACTS_DIR / "model_metrics.csv"
 PROCESSED_DATA_FILE = ARTIFACTS_DIR / "processed_data.csv"
 
