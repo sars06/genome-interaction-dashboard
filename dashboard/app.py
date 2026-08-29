@@ -28,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 ARTIFACTS_DIR = BASE_DIR / "artifacts"
 
-MODEL_FILE = ARTIFACTS_DIR / "dashboard_models_compressed.joblib"
+MODEL_FILE = ARTIFACTS_DIR / "dashboard_models_lightweight.joblib"
 METRICS_FILE = ARTIFACTS_DIR / "model_metrics.csv"
 PROCESSED_DATA_FILE = ARTIFACTS_DIR / "processed_data.csv"
 
@@ -92,7 +92,6 @@ def load_models():
         required_keys = [
             "random_forest",
             "extra_trees",
-            "tuned_random_forest",
             "preprocessor"
         ]
 
@@ -132,10 +131,6 @@ if package is not None:
     print(f"MODEL PACKAGE KEYS: {list(package.keys())}", flush=True)
     print(f"RF TYPE: {type(package.get('random_forest')).__name__}", flush=True)
     print(f"ET TYPE: {type(package.get('extra_trees')).__name__}", flush=True)
-    print(
-        f"TUNED TYPE: {type(package.get('tuned_random_forest')).__name__}",
-        flush=True,
-    )
     print(
         f"PREPROCESSOR TYPE: {type(package.get('preprocessor')).__name__}",
         flush=True,
@@ -655,7 +650,6 @@ and interaction strength. The dashboard can compare:
 
 - Random Forest
 - Extra Trees
-- Tuned Random Forest
 
 **Step 6 — Predict a new interaction**  
 When a user enters genomic coordinates and interaction characteristics, the same preprocessing
@@ -676,9 +670,6 @@ can learn non-linear patterns and interactions among multiple features.
 **Extra Trees** is another tree-ensemble method that introduces additional randomness when
 creating trees, which can produce a different and sometimes more generalizable model.
 
-**Tuned Random Forest** is a Random Forest whose important hyperparameters have been adjusted
-using the project's training process to improve test-set performance.
-
 The Model Comparison page reports **MAE, RMSE, and R²** when those metrics are available:
 
 - **MAE:** average absolute prediction error; lower is better.
@@ -691,7 +682,7 @@ The Model Comparison page reports **MAE, RMSE, and R²** when those metrics are 
     st.markdown(
         """
 A prediction is the model's estimated interaction-strength value for the genomic information
-entered by the user. The dashboard displays predictions from all three trained models so that
+entered by the user. The dashboard displays predictions from the two available trained models so that
 their outputs can be compared. It also shows their average as a simple overall estimate.
 
 A prediction should be interpreted together with the model's validation performance. A model
@@ -1060,7 +1051,7 @@ elif page == "Model Comparison":
     st.header("🤖 Model Comparison")
 
     st.write(
-        "Comparison of the three trained regression models "
+        "Comparison of the available trained regression models "
         "using their test-set performance."
     )
 
@@ -1086,6 +1077,15 @@ elif page == "Model Comparison":
         )
 
     else:
+
+        # The lightweight package contains only Random Forest and Extra Trees.
+        # Hide an obsolete Tuned Random Forest row if an older metrics CSV exists.
+        if "Model" in metrics.columns:
+            metrics = metrics[
+                metrics["Model"].astype(str).str.strip().str.lower().isin(
+                    ["random forest", "extra trees"]
+                )
+            ].copy()
 
         st.subheader("Test-set Performance")
 
@@ -1194,10 +1194,6 @@ elif page == "Model Comparison":
                 f"(R² = {best_row['R2']:.4f})"
             )
 
-
-# ============================================================
-# NEW INTERACTION PREDICTION
-# ============================================================
 
 # ============================================================
 # NEW INTERACTION PREDICTION
@@ -1833,11 +1829,7 @@ elif page == "New Interaction Prediction":
                     ).reshape(-1)[0]
                 )
 
-                tuned_prediction = float(
-                    np.asarray(
-                        package["tuned_random_forest"].predict(X_input)
-                    ).reshape(-1)[0]
-                )
+                
 
                 # -------------------------------------------
                 # RESULTS
@@ -1867,13 +1859,6 @@ elif page == "New Interaction Prediction":
                         f"{extra_prediction:.4f}"
                     )
 
-                with c3:
-
-                    st.metric(
-                        "Tuned Random Forest",
-                        f"{tuned_prediction:.4f}"
-                    )
-
                 # -------------------------------------------
                 # RESULT TABLE
                 # -------------------------------------------
@@ -1882,14 +1867,12 @@ elif page == "New Interaction Prediction":
 
                     "Model": [
                         "Random Forest",
-                        "Extra Trees",
-                        "Tuned Random Forest"
+                        "Extra Trees"
                     ],
 
                     "Predicted Interaction Strength": [
                         rf_prediction,
-                        extra_prediction,
-                        tuned_prediction
+                        extra_prediction
                     ]
                 })
 
@@ -1928,8 +1911,7 @@ elif page == "New Interaction Prediction":
 
                 average_prediction = np.mean([
                     rf_prediction,
-                    extra_prediction,
-                    tuned_prediction
+                    extra_prediction
                 ])
 
                 st.info(
